@@ -120,8 +120,6 @@
 export default {
     data: () => {
         return {
-            libraryId: localStorage.getItem('libraryId'),
-
             orderData: [],
             total: undefined,
             pageSize: 20,
@@ -196,6 +194,11 @@ export default {
                 }]
             }
 
+        }
+    },
+    computed: {
+        libraryId() {
+            return this.$store.state.userInfo.id;
         }
     },
     created: function() {

@@ -82,7 +82,6 @@ var validator = (rule, value, callback) => {
 export default {
     data: () => {
         return {
-            libraryId: localStorage.getItem('libraryId'),
             xaxis: date,
             yaxis: [],
             libraryData: {},
@@ -123,6 +122,11 @@ export default {
                     trigger: 'blur'
                 }]
             }
+        }
+    },
+    computed: {
+        libraryId() {
+            return this.$store.state.userInfo.id;
         }
     },
     created: function() {

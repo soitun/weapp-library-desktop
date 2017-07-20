@@ -26,7 +26,7 @@ export default {
         },
         computed: {
             username() {
-                let username = localStorage.getItem('username');
+                let username = this.$store.state.userInfo.admin_name;
                 return username ? username : this.name;
             },
             onRoutes() {
@@ -36,7 +36,7 @@ export default {
         methods: {
             handleCommand(command) {
                 if (command == 'loginout') {
-                    localStorage.removeItem('username')
+                    this.deleteCookie('session');
                     this.$router.push('/login');
                 }
             }

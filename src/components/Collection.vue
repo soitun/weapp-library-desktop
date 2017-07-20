@@ -63,8 +63,6 @@ var validator = (rule, value, callback) => {
 export default {
     data: () => {
         return {
-            libraryId: localStorage.getItem('libraryId'),
-
             collcetionForm: {
                 isbn: "",
                 total_num: null,
@@ -105,6 +103,11 @@ export default {
                     validator: validator
                 }]
             }
+        }
+    },
+    computed: {
+        libraryId() {
+            return this.$store.state.userInfo.id;
         }
     },
     created: function() {

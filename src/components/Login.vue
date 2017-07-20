@@ -157,8 +157,10 @@ export default {
                             if (!res.data.data) {
                                 self.$message.error("用户名或密码错误");
                             } else {
-                                localStorage.setItem('username', self.loginForm.phone);
-                                localStorage.setItem('libraryId', res.data.data.id);
+                                //登录状态15天后过期
+                                let expireDays = 1000 * 60 * 60 * 24 * 15;
+                                this.setCookie('session', 'placeholder', expireDays);
+                                self.$store.commit('userInfo', res.data.data);
                                 self.$router.push('/home');
                             }
                         }).catch(_ => {
