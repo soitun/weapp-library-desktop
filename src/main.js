@@ -33,27 +33,22 @@ Vue.prototype.deleteCookie = (name) => {
         document.cookie = name + "=" + cval + ";expires=" + exp.toGMTString();
 }
 
+router.beforeEach((to, from, next) => {
+    if (to.path == '/login') {
+        Vue.prototype.deleteCookie('session');
+    }
+    if (!Vue.prototype.getCookie('session') && to.path != '/login') {
+        next({ path: '/login' })
+    } else {
+        next()
+    }
+})
+
 
 
 new Vue({
     el: '#app',
     store,
     router,
-    render: h => h(App),
-    watch: {
-        "$route": 'checkLogin'
-    },
-    created() {
-        this.checkLogin();
-    },
-    methods: {
-        checkLogin() {
-            //检查是否存在session
-            if (!this.getCookie('session')) {
-                this.$router.push('/login');
-            } else {
-                this.$router.push('/home');
-            }
-        }
-    }
+    render: h => h(App)
 })

@@ -33,6 +33,10 @@ export default {
                 return this.$route.path.replace('/', '');
             }
         },
+        created(){
+            if(!this.$store.state.userInfo)
+                this.$router.push('/login');
+        },
         methods: {
             handleCommand(command) {
                 if (command == 'loginout') {
