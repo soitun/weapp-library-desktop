@@ -159,7 +159,7 @@ export default {
                             } else {
                                 //登录状态15天后过期
                                 let expireDays = 1000 * 60 * 60 * 24 * 15;
-                                this.setCookie('session', 'placeholder', expireDays);
+                                this.setCookie('id', res.data.data.id, expireDays);
                                 self.$store.commit('userInfo', res.data.data);
                                 self.$router.push('/home');
                             }
@@ -184,7 +184,7 @@ export default {
                                 self.dialogFormVisible = false;
                                 self.$message("注册成功");
                             } else {
-                                self.$message.error("注册失败");
+                                self.$message.error("注册失败：" + res.data.errmsg);
                             }
                         }).catch(_ => {
                             self.loginLoading = false;
