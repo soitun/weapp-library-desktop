@@ -40,7 +40,7 @@
     </div>
 </template>
 <script>
-import screenfull from './Screenfull.vue';
+import screenfull from '../../components/Screenfull.vue';
 export default {
     components: {
         screenfull

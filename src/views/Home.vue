@@ -2,13 +2,15 @@
     <div class="wrap">
         <v-head></v-head>
         <transition name="fade" mode="out-in">
-            <router-view>
-            </router-view>
+            <div class="content">
+                <router-view>
+                </router-view>
+            </div>
         </transition>
     </div>
 </template>
 <script>
-import vHead from './Header.vue';
+import vHead from './components/Header.vue';
 export default {
     components: {
         vHead
@@ -16,6 +18,13 @@ export default {
 }
 </script>
 <style scoped>
+.content {
+    background: none repeat scroll 0 0 #fff;
+    width: 100%;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
 .fade-enter-active,
 .fade-leave-active {
     transition: opacity .3s

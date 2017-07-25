@@ -1,5 +1,5 @@
 <template>
-    <div class="content">
+    <div>
         <el-form :inline="true">
             <el-form-item>
                 <el-input v-model="searchInput" placeholder="图书ISBN"></el-input>
@@ -52,57 +52,40 @@
     </div>
 </template>
 <script>
-var validator = (rule, value, callback) => {
-    if (isNaN(value)) {
-        callback(new Error('请输入一个整数'));
-    } else {
-        callback();
-    }
-}
+import { requiredValidator, integerValidator } from '../utils/validate.js'
 
 export default {
     data: () => {
         return {
-            collcetionForm: {
-                isbn: "",
-                total_num: null,
-                available_num: null
-            },
-
+            // 馆藏信息
             collectionData: [],
             total: undefined,
             pageSize: 20,
             currentPage: 1,
             currentTableType: 'all', // all || search
 
+            // 搜索输入框
             searchInput: '',
+
+            // 设置馆藏 表单
+            collcetionForm: {
+                isbn: "",
+                total_num: null,
+                available_num: null
+            },
+            collectionRules: {
+                isbn: [requiredValidator("请输入isbn")],
+                total_num: [requiredValidator("请输入图书总数"), {
+                    validator: validator
+                }],
+                available_num: [requiredValidator("请输入图书可借数目"), {
+                    validator: validator
+                }]
+            },
 
             collectionFormLoading: false,
             collectionTableLoading: false,
             dialogFormVisible: false,
-
-
-            collectionRules: {
-                isbn: [{
-                    required: true,
-                    message: '请输入isbn',
-                    trigger: 'blur'
-                }],
-                total_num: [{
-                    required: true,
-                    message: '请输入图书总数',
-                    trigger: 'blur'
-                }, {
-                    validator: validator
-                }],
-                available_num: [{
-                    required: true,
-                    message: '请输入图书可借数目',
-                    trigger: 'blur'
-                }, {
-                    validator: validator
-                }]
-            }
         }
     },
     computed: {
@@ -114,38 +97,7 @@ export default {
         this.fetchData(1);
     },
     methods: {
-        submitForm(formName) {
-            const self = this;
-            self.$refs[formName].validate((valid) => {
-                if (valid) {
-                    if (formName == 'collcetionForm') {
-                        self.submitCollectionForm();
-                    }
-                } else {
-                    console.log('error submit!!');
-                    return false;
-                }
-            });
-        },
-        submitCollectionForm() {
-            const self = this;
-            self.collectionFormLoading = true;
-            self.$axios.post('/api/libraries/' + this.libraryId + '/collections', self.collcetionForm).then(res => {
-                self.collectionFormLoading = false;
-                if (res.data.code == 200) {
-                    const h = this.$createElement;
-                    this.$message.success("设置馆藏成功：《" + res.data.data.book_brief.title + "》 总数：" + res.data.data.total_num + " 可借：" + res.data.data.available_num)
-                    self.fetchData(self.currentPage);
-                    self.dialogFormVisible = false;
-                    self.resetFields();
-                } else {
-                    self.$message.error("添加失败：" + res.data.errmsg);
-                }
-            }).catch(_ => {
-                self.collectionFormLoading = false;
-                self.$message.error("服务器错误")
-            })
-        },
+        // 重置“设置馆藏”表单
         resetFields() {
             this.collcetionForm = {
                 isbn: "",
@@ -153,18 +105,16 @@ export default {
                 available_num: null
             }
         },
+
+        // 编辑某一行馆藏信息
         handleEdit(row) {
             this.collcetionForm.isbn = row.book_brief.isbn;
             this.collcetionForm.total_num = row.total_num;
             this.collcetionForm.available_num = row.available_num;
             this.dialogFormVisible = true
         },
-        handleSearch() {
-            this.currentTableType = 'search';
-            if (this.currentPage == 1)
-                this.fetchData(1);
-            else this.currentPage = 1;
-        },
+
+        // 清空搜索条件，重置表格
         resetTable() {
             this.searchInput = '';
             this.currentTableType = 'all';
@@ -174,6 +124,15 @@ export default {
                 this.fetchData(1);
             else this.currentPage = 1;
         },
+
+        // 搜索馆藏
+        handleSearch() {
+            this.currentTableType = 'search';
+            if (this.currentPage == 1)
+                this.fetchData(1);
+            else this.currentPage = 1;
+        },
+
         fetchData(p) {
             var start = (p - 1) * this.pageSize;
             var self = this;
@@ -197,7 +156,42 @@ export default {
                 self.collectionTableLoading = false;
                 self.$message.error("服务器错误")
             })
-        }
+        },
+
+        submitForm(formName) {
+            const self = this;
+            self.$refs[formName].validate((valid) => {
+                if (valid) {
+                    if (formName == 'collcetionForm') {
+                        self.submitCollectionForm();
+                    }
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        },
+
+        submitCollectionForm() {
+            const self = this;
+            self.collectionFormLoading = true;
+            self.$axios.post('/api/libraries/' + this.libraryId + '/collections', self.collcetionForm).then(res => {
+                self.collectionFormLoading = false;
+                if (res.data.code == 200) {
+                    const h = this.$createElement;
+                    this.$message.success("设置馆藏成功：《" + res.data.data.book_brief.title + "》 总数：" + res.data.data.total_num + " 可借：" + res.data.data.available_num)
+                    self.fetchData(self.currentPage);
+                    self.dialogFormVisible = false;
+                    self.resetFields();
+                } else {
+                    self.$message.error("添加失败：" + res.data.errmsg);
+                }
+            }).catch(_ => {
+                self.collectionFormLoading = false;
+                self.$message.error("服务器错误")
+            })
+        },
+
     }
 }
 </script>

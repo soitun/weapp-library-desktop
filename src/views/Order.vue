@@ -1,5 +1,5 @@
 <template>
-    <div class="content">
+    <div>
         <el-form inline>
             <el-form-item>
                 <el-input v-model="searchOptions.orderId" placeholder="订单号"></el-input>
@@ -210,7 +210,7 @@ export default {
             this.dialogFormVisible = true;
         },
         handleSubmit() {
-            if (!this.dialogStateValue) 
+            if (!this.dialogStateValue)
                 return this.dialogFormVisible = false;
 
             const self = this;
@@ -346,7 +346,7 @@ export default {
     margin: 0;
 }
 
-.dialog-footer > .deleteBtn {
+.dialog-footer>.deleteBtn {
     float: left;
 }
 </style>

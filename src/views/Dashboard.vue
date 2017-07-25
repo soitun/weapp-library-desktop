@@ -1,10 +1,13 @@
 <template>
-    <el-row class='content'>
+    <el-row>
         <el-col :span="16">
-            <my-chart :xaxis="xaxis" :yaxis="yaxis"></my-chart>
+            <div class="chart">
+                <div class="content-title">近期借阅统计</div>
+                <chart ref="chart" :options="schema"></chart>
+            </div>
         </el-col>
         <el-col :span="8">
-            <div class="panel" v-loading="libraryLoading">
+            <div class="panel">
                 <div class="content-title">图书馆信息</div>
                 <div class="card">
                     <el-form v-if="editing" :model="libraryFormData" :rules="libraryRules" ref="libraryForm" style="padding: 12px 20px" label-width="110px" label-position="left">
@@ -61,9 +64,9 @@
     </el-row>
 </template>
 <script>
-import myChart from './Chart.vue';
+import { requiredValidator, integerValidator } from '../utils/validate.js'
 
-// 横坐标：最近7天的日期；纵坐标：模拟借书量
+// 图表横坐标：最近7天的日期
 var date = [];
 var now = new Date().getTime();
 for (let i = 0; i < 7; i++) {
@@ -71,79 +74,93 @@ for (let i = 0; i < 7; i++) {
     date.unshift([time.getFullYear(), time.getMonth() + 1, time.getDate()].join('/'));
 }
 
-var validator = (rule, value, callback) => {
-    if (isNaN(value)) {
-        callback(new Error('请输入一个整数'));
-    } else {
-        callback();
-    }
-}
-
 export default {
     data: () => {
         return {
-            xaxis: date,
-            yaxis: [],
-            libraryData: {},
-            libraryFormData: {},
 
-            libraryLoading: true,
-            editing: false,
+            editing: false, // 是否编辑图书馆信息
+            libraryFormData: {}, // 图书馆信息表单数据
 
             libraryRules: {
-                admin_name: [{
-                    required: true,
-                    message: '请输入负责人姓名',
-                    trigger: 'blur'
+                admin_name: [requiredValidator('请输入负责人姓名')],
+                admin_phone: [requiredValidator('请输入负责人手机号'), { validator: phoneValidator }],
+                name: [requiredValidator('请输入图书馆名称')],
+                location: [requiredValidator('请输入图书馆地址')],
+                phone: [requiredValidator('请输入图书馆电话'), { validator: phoneValidator }],
+                description: [requiredValidator('请输入图书馆描述')]
+            },
+
+            // 图表配置
+            schema: {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                //图例配置
+                legend: {
+                    top: '20%',
+                    y: "bottom"
+                },
+                // 工具箱配置
+                toolbox: {
+                    show: true,
+                    formatter: function(params) {
+                        params = params[0];
+                        var date = new Date(params.name);
+                        return date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear() + ' : ' + params.value[1];
+                    },
+                    right: 25,
+                    feature: {
+                        saveAsImage: {
+                            name: "近七日借阅统计"
+                        }
+                    }
+                },
+                calculable: true,
+                //x轴配置
+                xAxis: [{
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed'
+                        }
+                    },
+                    axisTick: {
+                        alignWithLabel: true,
+                        inside: true,
+                        interval: 1
+                    },
+                    boundaryGap: false,
+                    data: date,
+                    name: "日期" // ** x轴配置:name
                 }],
-                admin_phone: [{
-                    required: true,
-                    message: '请输入负责人手机号',
-                    trigger: 'blur'
+                // Y轴配置
+                yAxis: [{
+                    type: 'value',
+                    name: "借书量/本"
                 }],
-                name: [{
-                    required: true,
-                    message: '请输入图书馆名称',
-                    trigger: 'blur'
-                }],
-                location: [{
-                    required: true,
-                    message: '请输入图书馆地址',
-                    trigger: 'blur'
-                }],
-                phone: [{
-                    required: true,
-                    message: '请输入图书馆电话',
-                    trigger: 'blur'
-                }],
-                description: [{
-                    required: true,
-                    message: '请输入图书馆描述',
-                    trigger: 'blur'
-                }]
+                color: [
+                    '#20A0FF'
+                ]
             }
         }
     },
     computed: {
         libraryId() {
             return this.$store.state.userInfo.id;
-        }
+        },
+        libraryData() {
+            return this.$store.state.userInfo;
+        },
     },
-    created: function() {
-        let self = this;
-        self.$axios.get('/api/libraries/' + this.libraryId).then(res => {
-            self.libraryLoading = false;
-            if (res.data.code == 200) {
-                self.libraryData = res.data.data;
-                self.yaxis = res.data.data.recent_lending_records;
-                self.libraryFormData = Object.assign({}, res.data.data);
-            } else {
-                self.$message.error("获取图书馆信息失败，请刷新页面重试")
-            }
-        }).catch(_ => {
-            self.libraryLoading = false;
-            self.$message.error("服务器错误")
-        })
+    mounted() {
+        this.libraryFormData = Object.assign({}, this.libraryData);
+        this.$refs.chart.mergeOptions({
+            series: [{
+                name: "借书量",
+                type: 'line',
+                data: this.libraryData.recent_lending_records,
+                smooth: true
+            }]
+        });
     },
     methods: {
         handleCancel() {
@@ -166,21 +183,13 @@ export default {
         submitLibraryForm() {
             const self = this;
             self.libraryLoading = true;
-            let params = {
-                name: self.libraryFormData.name,
-                location: self.libraryFormData.location,
-                phone: self.libraryFormData.phone,
-                description: self.libraryFormData.description,
-                admin_name: self.libraryFormData.admin_name,
-                admin_phone: self.libraryFormData.admin_phone,
-            }
-            self.$axios.post('/api/libraries/' + this.libraryId, params).then(res => {
+            self.$axios.post('/api/libraries/' + self.libraryId, self.libraryFormData).then(res => {
                 self.libraryLoading = false;
                 if (res.data.code == 200) {
                     self.dialogFormVisible = false;
                     self.$message("修改成功");
                     self.editing = false;
-                    self.libraryData = Object.assign({}, self.libraryFormData);
+                    self.$store.commit('userInfo', self.libraryFormData);
                 } else {
                     self.$message.error("修改失败");
                 }
@@ -189,13 +198,14 @@ export default {
                 self.$message.error("服务器错误")
             })
         }
-    },
-    components: {
-        myChart
     }
 }
 </script>
 <style scoped>
+.content-title {
+    font-size: 22px;
+}
+
 .card {
     margin-top: 20px;
     font-size: 14px;
@@ -220,16 +230,16 @@ export default {
     border-top: 0
 }
 
-.fragment > div {
+.fragment>div {
     margin-bottom: 16px;
 }
 
-.fragment > div > div {
+.fragment>div>div {
     width: 100px;
     display: inline-block;
 }
 
-.fragment > div:last-child {
+.fragment>div:last-child {
     margin-bottom: 0;
 }
 </style>
