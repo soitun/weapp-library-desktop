@@ -5,6 +5,7 @@
             <el-menu-item index="home">个人中心</el-menu-item>
             <el-menu-item index="collection">馆藏管理</el-menu-item>
             <el-menu-item index="order">订单管理</el-menu-item>
+            <screenfull class='screenfull'></screenfull>
             <div class="user-info">
                 <el-dropdown trigger="click" @command="handleCommand">
                     <span class="el-dropdown-link">
@@ -39,7 +40,11 @@
     </div>
 </template>
 <script>
+import screenfull from './Screenfull.vue';
 export default {
+    components: {
+        screenfull
+    },
     data() {
         return {
             passwordForm: {
@@ -162,8 +167,18 @@ export default {
     text-align: center;
 }
 
+.screenfull {
+    position: absolute;
+    right: 210px;
+    height: 60px;
+    vertical-align: middle;
+    color: red;
+    fill: rgb(255, 255, 255);
+}
+
 .user-info {
-    float: right;
+    position: absolute;
+    right: 0;
     height: 60px;
     padding-right: 50px;
     color: #fff;
@@ -175,7 +190,6 @@ export default {
 
 .user-info .el-dropdown-link {
     position: relative;
-    padding-left: 50px;
     height: 60px;
     color: #fff;
     cursor: pointer;
