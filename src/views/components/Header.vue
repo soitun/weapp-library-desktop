@@ -1,24 +1,26 @@
 <template>
     <div>
-        <el-menu class="header" theme="dark" :default-active="onRoutes" mode="horizontal" router>
-            <div class="logo">图书馆后台管理系统</div>
-            <el-menu-item index="home">个人中心</el-menu-item>
-            <el-menu-item index="collection">馆藏管理</el-menu-item>
-            <el-menu-item index="order">订单管理</el-menu-item>
-            <screenfull class='screenfull'></screenfull>
-            <div class="user-info">
-                <el-dropdown trigger="click" @command="handleCommand">
-                    <span class="el-dropdown-link">
+        <div class="wrap">
+            <el-menu class="header" theme="dark" :default-active="onRoutes" mode="horizontal" router>
+                <div class="logo">图书馆后台管理系统</div>
+                <el-menu-item index="home">个人中心</el-menu-item>
+                <el-menu-item index="collection">馆藏管理</el-menu-item>
+                <el-menu-item index="order">订单管理</el-menu-item>
+                <div class="header-action">
+                    <screenfull class='screenfull'></screenfull>
+                    <el-dropdown trigger="click" @command="handleCommand">
+                        <span class="el-dropdown-link">
                     欢迎你，{{username}} 
                     <i class="el-icon-setting" style="margin-left: 5px"></i>
                 </span>
-                    <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item command="changepassword">修改密码</el-dropdown-item>
-                        <el-dropdown-item command="loginout" divided>退出</el-dropdown-item>
-                    </el-dropdown-menu>
-                </el-dropdown>
-            </div>
-        </el-menu>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="changepassword">修改密码</el-dropdown-item>
+                            <el-dropdown-item command="loginout" divided>退出</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </el-menu>
+        </div>
         <el-dialog title="修改密码" :visible.sync="passwordModalVisible">
             <el-form :rules="passwordRules" label-width="120px" label-position="left" :model="passwordForm" ref="passwordForm">
                 <el-form-item label="原密码" prop="password">
@@ -151,56 +153,52 @@ export default {
 }
 </script>
 <style scoped>
+.wrap {
+    z-index: 999;
+    box-sizing: border-box;
+    position: relative;
+    padding: 0 35px;
+    width: 100%;
+    height: 100%;
+    background-color: #324157;
+}
+
 .header {
     position: relative;
     box-sizing: border-box;
-    width: 100%;
-    height: 60px;
+    height: 100%;
     font-size: 22px;
-    line-height: 60px;
     color: #fff;
 }
 
 .header .logo {
     float: left;
-    width: 250px;
-    text-align: center;
+    margin-right: 50px;
+    line-height: 60px;
 }
 
-.screenfull {
-    position: absolute;
-    right: 210px;
-    height: 60px;
-    vertical-align: middle;
-    color: red;
-    fill: rgb(255, 255, 255);
-}
-
-.user-info {
+.header-action {
     position: absolute;
     right: 0;
-    height: 60px;
-    padding-right: 50px;
-    color: #fff;
+    line-height: 60px;
 }
 
-.user-info .el-dropdown {
-    display: block;
+.header-action .screenfull {
+    margin-right: 10px;
 }
 
-.user-info .el-dropdown-link {
-    position: relative;
-    height: 60px;
+.header-action .el-dropdown,
+.header-action .login-link {
+    display: inline-block;
+    vertical-align: top;
+}
+
+.header-action .el-dropdown-link {
     color: #fff;
     cursor: pointer;
-    vertical-align: middle;
 }
 
-.el-dropdown-menu__item {
-    text-align: center;
-}
-
-.el-menu-item.is-active {
-    border-bottom: 5px solid #20a0ff;
+.header-action .login-link {
+    font-size: 14px;
 }
 </style>

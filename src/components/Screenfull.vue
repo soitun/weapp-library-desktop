@@ -45,5 +45,6 @@ export default {
     display: inline-block;
     cursor: pointer;
     vertical-align: -0.15em;
+    fill: rgb(255,255,255);
 }
 </style>

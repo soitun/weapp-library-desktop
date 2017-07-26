@@ -1,5 +1,6 @@
 <template>
     <div class="login-wrap">
+        <div id="particles-js"></div>
         <div class="ms-title">图书馆后台管理系统</div>
         <div class="ms-login">
             <el-form :model="loginForm" :rules="loginRules" ref="loginForm" label-width="0px">
@@ -13,7 +14,7 @@
                     <el-button type="primary" :loading="loginLoading" @click="submitForm('loginForm')">登录</el-button>
                 </div>
                 <div class="login-btn">
-                    <el-button type="text" @click="dialogFormVisible=true">注册</el-button>
+                    <el-button type="text" @click="registerDialogVisible=true">注册</el-button>
                 </div>
             </el-form>
         </div>
@@ -53,11 +54,14 @@
     </div>
 </template>
 <script>
+import 'particles.js/particles';
+const particlesJS = window.particlesJS;
 import { requiredValidator } from '../utils/validate.js'
 
 export default {
     data: function() {
         return {
+            // login
             loginForm: {
                 phone: '',
                 password: ''
@@ -66,7 +70,9 @@ export default {
                 phone: [requiredValidator('请输入用户名')],
                 password: [requiredValidator('请输入密码')]
             },
+            loginLoading: false,
 
+            // register
             registerForm: {
                 manager: '',
                 managerPhone: '',
@@ -102,11 +108,119 @@ export default {
                     }
                 }],
             },
+            registerDialogVisible: false,
+            registerLoading: false,
 
-            dialogFormVisible: false,
-            loginLoading: false,
-            registerLoading: false
+            // particles
+            particlesCfg: {
+                "particles": {
+                    "number": {
+                        "value": 88,
+                        "density": {
+                            "enable": true,
+                            "value_area": 700
+                        }
+                    },
+                    "color": {
+                        "value": ["#aa73ff", "#f8c210", "#83d238", "#33b1f8"]
+                    },
+                    "shape": {
+                        "type": "circle",
+                        "stroke": {
+                            "width": 0,
+                            "color": "#000000"
+                        },
+                        "polygon": {
+                            "nb_sides": 15
+                        }
+                    },
+                    "opacity": {
+                        "value": 0.5,
+                        "random": false,
+                        "anim": {
+                            "enable": false,
+                            "speed": 1.5,
+                            "opacity_min": 0.15,
+                            "sync": false
+                        }
+                    },
+                    "size": {
+                        "value": 2.5,
+                        "random": false,
+                        "anim": {
+                            "enable": true,
+                            "speed": 2,
+                            "size_min": 0.15,
+                            "sync": false
+                        }
+                    },
+                    "line_linked": {
+                        "enable": true,
+                        "distance": 110,
+                        "color": "#33b1f8",
+                        "opacity": 0.25,
+                        "width": 1
+                    },
+                    "move": {
+                        "enable": true,
+                        "speed": 1.6,
+                        "direction": "none",
+                        "random": false,
+                        "straight": false,
+                        "out_mode": "out",
+                        "bounce": false,
+                        "attract": {
+                            "enable": false,
+                            "rotateX": 600,
+                            "rotateY": 1200
+                        }
+                    }
+                },
+                "interactivity": {
+                    "detect_on": "canvas",
+                    "events": {
+                        "onhover": {
+                            "enable": false,
+                            "mode": "grab"
+                        },
+                        "onclick": {
+                            "enable": false,
+                            "mode": "push"
+                        },
+                        "resize": true
+                    },
+                    "modes": {
+                        "grab": {
+                            "distance": 100,
+                            "line_linked": {
+                                "opacity": 0.8
+                            }
+                        },
+                        "bubble": {
+                            "distance": 400,
+                            "size": 40,
+                            "duration": 2,
+                            "opacity": 8,
+                            "speed": 3
+                        },
+                        "repulse": {
+                            "distance": 200,
+                            "duration": 0.4
+                        },
+                        "push": {
+                            "particles_nb": 4
+                        },
+                        "remove": {
+                            "particles_nb": 2
+                        }
+                    }
+                },
+                "retina_detect": true
+            }
         }
+    },
+    mounted() {
+        particlesJS("particles-js", this.particlesCfg);
     },
     methods: {
         resetForm(form) {
@@ -154,7 +268,7 @@ export default {
             self.$axios.post("/api/libraries", self.registerForm).then(res => {
                 self.registerLoading = false;
                 if (res.data.data) {
-                    self.dialogFormVisible = false;
+                    self.registerDialogVisible = false;
                     self.$message("注册成功");
                 } else {
                     self.$message.error("注册失败：" + res.data.errmsg);
@@ -172,7 +286,19 @@ export default {
     position: relative;
     width: 100%;
     height: 100%;
-    background: #324157;
+}
+
+canvas {
+    display: block;
+    vertical-align: bottom;
+}
+
+#particles-js {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #323840;
 }
 
 .ms-title {

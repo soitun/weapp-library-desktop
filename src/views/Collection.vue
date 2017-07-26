@@ -76,10 +76,10 @@ export default {
             collectionRules: {
                 isbn: [requiredValidator("请输入isbn")],
                 total_num: [requiredValidator("请输入图书总数"), {
-                    validator: validator
+                    validator: integerValidator
                 }],
                 available_num: [requiredValidator("请输入图书可借数目"), {
-                    validator: validator
+                    validator: integerValidator
                 }]
             },
 
@@ -93,7 +93,7 @@ export default {
             return this.$store.state.userInfo.id;
         }
     },
-    created: function() {
+    mounted: function() {
         this.fetchData(1);
     },
     methods: {
@@ -133,6 +133,7 @@ export default {
             else this.currentPage = 1;
         },
 
+        // 获取数据
         fetchData(p) {
             var start = (p - 1) * this.pageSize;
             var self = this;

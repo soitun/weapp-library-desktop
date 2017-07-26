@@ -64,7 +64,7 @@
     </el-row>
 </template>
 <script>
-import { requiredValidator, integerValidator } from '../utils/validate.js'
+import { requiredValidator, integerValidator, phoneValidator } from '../utils/validate.js'
 
 // 图表横坐标：最近7天的日期
 var date = [];
