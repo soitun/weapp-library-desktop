@@ -173,19 +173,29 @@ export default {
             });
         },
 
+        // 添加馆藏
         submitCollectionForm() {
             const self = this;
             self.collectionFormLoading = true;
             self.$axios.post('/api/libraries/' + this.libraryId + '/collections', self.collcetionForm).then(res => {
                 self.collectionFormLoading = false;
                 if (res.data.code == 200) {
-                    const h = this.$createElement;
                     this.$message.success("设置馆藏成功：《" + res.data.data.book_brief.title + "》 总数：" + res.data.data.total_num + " 可借：" + res.data.data.available_num)
                     self.fetchData(self.currentPage);
                     self.dialogFormVisible = false;
                     self.resetFields();
                 } else {
-                    self.$message.error("添加失败：" + res.data.errmsg);
+                    const h = this.$createElement;
+                    this.$msgbox({
+                        title: '消息',
+                        type: 'error',
+                        message: h('p', null, [
+                            "ISBN不存在，您可前往",
+                            h('a', { attrs: { href: 'https://api.mymoonlight.cn/wiki/', target: "blank" } }, 'Wiki系统'),
+                            "创建图书条目"
+                        ]),
+                        confirmButtonText: '确定'
+                    });
                 }
             }).catch(_ => {
                 self.collectionFormLoading = false;

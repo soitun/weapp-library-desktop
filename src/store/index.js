@@ -6,6 +6,9 @@ export default new Vuex.Store({
     state: {
         userInfo: null
     },
+    getters: {
+        adminPhone: state => state.userInfo.admin_phone
+    },
     mutations: {
         userInfo(state, userInfo) {
             state.userInfo = userInfo;

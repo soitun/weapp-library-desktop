@@ -133,11 +133,8 @@ export default {
         },
         changePassword() {
             const self = this;
-
             self.passwordLoading = true;
-
             self.passwordForm.admin_phone = this.$store.state.userInfo.admin_phone;
-
             self.$axios.post("/api/libraries/password", self.passwordForm).then(res => {
                 if (res.data.code == '200') {
                     self.$message.success("修改密码成功");

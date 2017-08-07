@@ -15,4 +15,16 @@ body,
     width: 100%;
     height: 100%;
 }
+
+
+a {
+    color: #20a0ff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a:hover,
+a:active {
+    color: rgba(32, 160, 255, .8);
+}
 </style>
