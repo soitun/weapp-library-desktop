@@ -13,6 +13,7 @@
             <el-form-item>
                 <el-button @click="resetTable()">重置</el-button>
             </el-form-item>
+            <el-button type="text" style="float: right" @click="showTip()">查看提示</el-button>
         </el-form>
         <el-dialog title="设置馆藏" :visible.sync="dialogFormVisible" v-on:close="resetFields">
             <el-form :rules="collectionRules" label-width="120px" label-position="left" :model="collcetionForm" ref="collcetionForm">
@@ -31,7 +32,7 @@
                 <el-button type="primary" :loading="collectionFormLoading" @click="submitForm('collcetionForm')">确 定</el-button>
             </div>
         </el-dialog>
-        <el-table v-loading="collectionTableLoading" :data="collectionData" stripe style="width: 100%">
+        <el-table class="collection-table" v-loading="collectionTableLoading" :data="collectionData" stripe style="width: 100%" @row-click="navigate">
             <el-table-column prop="book_brief.title" label="书名">
             </el-table-column>
             <el-table-column prop="book_brief.isbn" label="ISBN">
@@ -40,7 +41,7 @@
             </el-table-column>
             <el-table-column prop="available_num" label="可借数目" width="150">
             </el-table-column>
-            <el-table-column label="操作" width="150">
+            <el-table-column label="操作" width="100">
                 <template scope="scope">
                     <el-button size="small" @click="handleEdit(scope.row)">编辑</el-button>
                 </template>
@@ -84,7 +85,7 @@ export default {
             },
 
             collectionFormLoading: false,
-            collectionTableLoading: false,
+            collectionTableLoading: true,
             dialogFormVisible: false,
         }
     },
@@ -95,6 +96,10 @@ export default {
     },
     mounted: function() {
         this.fetchData(1);
+        if (!this.$store.getters.showTip) {
+            this.showTip();
+            this.$store.commit('SET_SHOW_TIP', true);
+        }
     },
     methods: {
         // 重置“设置馆藏”表单
@@ -203,6 +208,28 @@ export default {
             })
         },
 
+        // 显示提示信息
+        showTip() {
+            const h = this.$createElement;
+            this.$notify.info({
+                title: 'Tips',
+                message: h('div', null, [
+                    h('div', null, [
+                        '您可在',
+                        h('a', { attrs: { href: 'https://api.mymoonlight.cn/wiki/', target: "blank" } }, '图书Wiki系统'),
+                        '中添加、编辑图书信息;'
+                    ]),
+                    h('div', null, '点击列表行可查看该图书的详细信息;'),
+                    h('div', null, '首次访问Wiki系统时会下载约4M应用文件，请耐心等待。'),
+                ]),
+                //duration: 0
+            });
+        },
+
+        // 跳转到图书详情页
+        navigate: function(row) {
+            window.open("https://api.mymoonlight.cn/wiki/#/book/" + row.book_brief.id);
+        }
     }
 }
 </script>
@@ -210,5 +237,14 @@ export default {
 .el-pagination {
     margin-top: 20px;
     text-align: center;
+}
+</style>
+<style>
+.el-notification {
+    z-index: 10001 !important;
+}
+
+.collection-table.el-table tr:hover {
+    cursor: pointer;
 }
 </style>

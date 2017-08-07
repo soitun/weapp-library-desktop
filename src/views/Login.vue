@@ -254,7 +254,7 @@ export default {
                     //登录状态15天后过期
                     let expireDays = 1000 * 60 * 60 * 24 * 15;
                     this.setCookie('id', res.data.data.id, expireDays);
-                    self.$store.commit('userInfo', res.data.data);
+                    self.$store.commit('SET_USER_INFO', res.data.data);
                     self.$router.push('/home');
                 }
             }).catch(_ => {

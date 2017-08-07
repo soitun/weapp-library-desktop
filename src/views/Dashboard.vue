@@ -26,8 +26,8 @@
                         <el-form-item label="负责人：" prop="admin_name">
                             <el-input v-model="libraryFormData.admin_name" size="small"></el-input>
                         </el-form-item>
-                        <el-form-item label="联系电话：" prop="admin_phone">
-                            <el-input v-model="libraryFormData.admin_phone" size="small"></el-input>
+                        <el-form-item label="联系电话">
+                            <el-input disabled v-model="libraryFormData.admin_phone" size="small"></el-input>
                         </el-form-item>
                     </el-form>
                     <div v-else class="fragment">
@@ -83,7 +83,6 @@ export default {
 
             libraryRules: {
                 admin_name: [requiredValidator('请输入负责人姓名')],
-                admin_phone: [requiredValidator('请输入负责人手机号'), { validator: phoneValidator }],
                 name: [requiredValidator('请输入图书馆名称')],
                 location: [requiredValidator('请输入图书馆地址')],
                 phone: [requiredValidator('请输入图书馆电话'), { validator: phoneValidator }],

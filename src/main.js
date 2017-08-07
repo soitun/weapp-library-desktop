@@ -48,7 +48,7 @@ router.beforeEach((to, from, next) => {
     } else if (to.path != '/login' && !store.state.userInfo) {
         // 获取用户信息
         Vue.prototype.$axios.get("/api/libraries/" + Vue.prototype.getCookie('id')).then(res => {
-            store.commit('userInfo', res.data.data);
+            store.commit('SET_USER_INFO', res.data.data);
             next();
         }).catch(() => {
             Vue.prototype.$message.error("获取用户信息失败, 请刷新重试");
