@@ -212,14 +212,14 @@ export default {
         showTip() {
             const h = this.$createElement;
             this.$notify.info({
-                title: 'Tips',
+                title: '提示',
                 message: h('div', null, [
                     h('div', null, [
                         '您可在',
                         h('a', { attrs: { href: 'https://api.mymoonlight.cn/wiki/', target: "blank" } }, '图书Wiki系统'),
                         '中添加、编辑图书信息;'
                     ]),
-                    h('div', null, '点击列表行可查看该图书的详细信息;'),
+                    h('div', null, '点击列表某一行可查看该图书的详细信息;'),
                     h('div', null, '首次访问Wiki系统时会下载约4M应用文件，请耐心等待。'),
                 ]),
                 //duration: 0

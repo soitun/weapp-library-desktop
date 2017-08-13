@@ -18,7 +18,7 @@
                 </div>
             </el-form>
         </div>
-        <el-dialog title="注册" :visible.sync="dialogFormVisible">
+        <el-dialog title="注册" :visible.sync="registerDialogVisible">
             <el-form :rules="registerRules" label-width="120px" label-position="left" :model="registerForm" ref="registerForm">
                 <el-form-item label="负责人手机号" prop="admin_phone">
                     <el-input placeholder="负责人手机号将作为登录账号" v-model="registerForm.admin_phone"></el-input>
@@ -35,6 +35,9 @@
                 <el-form-item label="图书馆名称" prop="name">
                     <el-input v-model="registerForm.name"></el-input>
                 </el-form-item>
+                <!-- <el-form-item label="图书馆地址" prop="area">
+                    <area-select :level="3" type="text" v-model="registerForm.area"></area-select>
+                </el-form-item> -->
                 <el-form-item label="图书馆地址" prop="location">
                     <el-input v-model="registerForm.location"></el-input>
                 </el-form-item>
@@ -47,7 +50,7 @@
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button style="float: left;" @click="resetForm('registerForm')">重 置</el-button>
-                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button @click="registerDialogVisible = false">取 消</el-button>
                 <el-button type="primary" :loading="registerLoading" @click="submitForm('registerForm')">确 定</el-button>
             </div>
         </el-dialog>
@@ -56,7 +59,7 @@
 <script>
 import 'particles.js/particles';
 const particlesJS = window.particlesJS;
-import { requiredValidator } from '../utils/validate.js'
+import { requiredValidator, phoneValidator } from '../utils/validate.js'
 
 export default {
     data: function() {
@@ -79,13 +82,14 @@ export default {
                 password: '',
                 confirmPassword: '',
                 name: '',
+                area: [],
                 address: '',
                 telephone: '',
                 description: ''
             },
             registerRules: {
                 admin_name: [requiredValidator('请输入负责人姓名')],
-                admin_phone: [requiredValidator('请输入负责人手机号')],
+                admin_phone: [requiredValidator('请输入负责人手机号'), {validator: phoneValidator}],
                 name: [requiredValidator('请输入图书馆名称')],
                 location: [requiredValidator('请输入图书馆地址')],
                 phone: [requiredValidator('请输入图书馆电话')],
@@ -330,5 +334,16 @@ canvas {
 .login-btn button {
     width: 100%;
     height: 36px;
+}
+</style>
+<style>
+.area-select .el-select {
+    width: 30%;
+    min-width: 100px;
+    margin-left: 10px;
+}
+
+.area-select .el-select:first-child {
+    margin-left: 0;
 }
 </style>

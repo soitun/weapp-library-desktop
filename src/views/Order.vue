@@ -77,7 +77,7 @@
         <el-pagination layout="prev, pager, next" :total="total" :page-size="pageSize" :current-page.sync="currentPage" @current-change="fetchData">
         </el-pagination>
         <div>一共{{total}}条订单数据</div>
-        <el-dialog title="设置馆藏" :visible.sync="dialogFormVisible" @close="resetFields">
+        <el-dialog title="编辑订单" :visible.sync="dialogFormVisible" @close="resetFields">
             <el-form label-width="120px" label-position="left" :model="dialogData">
                 <el-form-item label="订单id">
                     <el-input disabled :value="dialogData.id"></el-input>

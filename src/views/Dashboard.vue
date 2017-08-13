@@ -188,7 +188,7 @@ export default {
                     self.dialogFormVisible = false;
                     self.$message("修改成功");
                     self.editing = false;
-                    self.$store.commit('userInfo', self.libraryFormData);
+                    self.$store.commit('SET_USER_INFO', self.libraryFormData);
                 } else {
                     self.$message.error("修改失败");
                 }
@@ -218,6 +218,9 @@ export default {
 
 .card .el-form-item {
     margin-bottom: 0;
+}
+.card .el-form-item.is-error {
+    margin-bottom: 20px;
 }
 
 .fragment {

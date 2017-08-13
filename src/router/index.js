@@ -1,10 +1,5 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import Login from '../views/Login.vue'
-import Home from '../views/Home.vue'
-import Dashboard from '../views/Dashboard.vue'
-import Order from '../views/Order.vue'
-import Collection from '../views/Collection.vue'
 
 Vue.use(Router);
 
@@ -14,19 +9,19 @@ export default new Router({
         redirect: '/login'
     }, {
         path: '/login',
-        component: Login
+        component: resolve => require(["../views/Login.vue"], resolve)
     }, {
         path: '/home',
-        component: Home,
+        component: resolve => require(["../views/Home.vue"], resolve),
         children: [{
             path: '',
-            component: Dashboard
+            component: resolve => require(["../views/Dashboard.vue"], resolve)
         }, {
             path: '/order',
-            component: Order
+            component: resolve => require(["../views/Order.vue"], resolve)
         }, {
             path: '/collection',
-            component: Collection
+            component: resolve => require(["../views/Collection.vue"], resolve)
         }]
     }]
 })

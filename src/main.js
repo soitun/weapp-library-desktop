@@ -1,6 +1,7 @@
-import Vue from 'vue'
-import ElementUI from 'element-ui'
-import 'element-ui/lib/theme-default/index.css'
+import Vue from 'vue';
+import ElementUI from 'element-ui';
+import VueAreaLinkage from 'vue-area-linkage';
+import 'element-ui/lib/theme-default/index.css';
 import App from './App.vue'
 import axios from 'axios';
 import NProgress from 'nprogress';
@@ -10,7 +11,8 @@ import Echarts from 'vue-echarts';
 import store from './store'
 require('promise.prototype.finally').shim();
 
-Vue.use(ElementUI)
+Vue.use(ElementUI);
+Vue.use(VueAreaLinkage);
 Vue.component('chart', Echarts);
 
 Vue.prototype.$axios = axios;
