@@ -252,8 +252,8 @@ export default {
                 params: self.loginForm
             }).then((res) => {
                 self.loginLoading = false;
-                if (!res.data.data) {
-                    self.$message.error("用户名或密码错误");
+                if (res.data.code != 200) {
+                    self.$message.error(res.data.errmsg);
                 } else {
                     //登录状态15天后过期
                     let expireDays = 1000 * 60 * 60 * 24 * 15;
