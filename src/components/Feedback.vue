@@ -87,12 +87,11 @@ export default {
     padding: 10px;
     border: 0;
     border-radius: 25px;
-    box-shadow: 2px 2px 10px 2px rgba(44, 44, 44, .5);
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .12), 0 0 6px 0 rgba(0, 0, 0, .04);
 }
 
 .feedback:hover {
     background-color: rgba(234, 53, 74, .9);
-    box-shadow: 2px 2px 10px 2px rgba(99, 99, 99, .5);
 }
 
 .feedback:active {

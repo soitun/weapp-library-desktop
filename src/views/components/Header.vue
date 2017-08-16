@@ -111,7 +111,7 @@ export default {
         },
         handleCommand(command) {
             if (command == 'loginout') {
-                this.deleteCookie('session');
+                this.deleteCookie('id');
                 this.$router.push('/login');
             }
             if (command == 'changepassword') {

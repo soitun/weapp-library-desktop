@@ -40,23 +40,33 @@ Vue.prototype.deleteCookie = (name) => {
 }
 
 router.beforeEach((to, from, next) => {
-    NProgress.start(); // 开启Progress
+    NProgress.start(); // 开启Progress 
+
+    // 如果进入登录页，在有cookie的时候跳至主页
     if (to.path == '/login') {
-        Vue.prototype.deleteCookie('id');
+        if (Vue.prototype.getCookie('id')) {
+            next({ path: '/home' })
+            NProgress.done();
+        } else {
+            next();
+        }
     }
-    if (!Vue.prototype.getCookie('id') && to.path != '/login') {
+    // 如果进入的不是登录页，在有cookie的时候获取用户信息，没cookie的时候跳到登录页
+    else if (!Vue.prototype.getCookie('id')) {
         next({ path: '/login' })
         NProgress.done(); // 在hash模式下 改变手动改变hash 重定向回来 不会触发afterEach 暂时hack方案 ps：history模式下无问题
-    } else if (to.path != '/login' && !store.state.userInfo) {
-        // 获取用户信息
-        Vue.prototype.$axios.get("/api/libraries/" + Vue.prototype.getCookie('id')).then(res => {
-            store.commit('SET_USER_INFO', res.data.data);
-            next();
-        }).catch(() => {
-            Vue.prototype.$message.error("获取用户信息失败, 请刷新重试");
-        });
     } else {
-        next();
+        if (!store.state.userInfo) {
+            // 获取用户信息
+            Vue.prototype.$axios.get("/api/libraries/" + Vue.prototype.getCookie('id')).then(res => {
+                store.commit('SET_USER_INFO', res.data.data);
+                next();
+            }).catch(() => {
+                Vue.prototype.$message.error("获取用户信息失败, 请刷新重试");
+            });
+        } else {
+            next();
+        }
     }
 })
 
