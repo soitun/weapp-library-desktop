@@ -8,6 +8,7 @@ export default new Vuex.Store({
         showTip: false, // 馆藏页提示是否已经显示过
     },
     getters: {
+        id: state => state.userInfo.id,
         adminPhone: state => state.userInfo.admin_phone,
         showTip: state => state.showTip,
     },

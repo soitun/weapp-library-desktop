@@ -1,6 +1,7 @@
 <template>
     <div class="wrap">
         <v-head></v-head>
+        <feedback></feedback>
         <transition name="fade" mode="out-in">
             <div class="content">
                 <router-view>
@@ -11,9 +12,10 @@
 </template>
 <script>
 import vHead from './components/Header.vue';
+import feedback from '../components/Feedback.vue';
 export default {
     components: {
-        vHead
+        vHead, feedback
     }
 }
 </script>
