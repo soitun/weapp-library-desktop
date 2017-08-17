@@ -7,7 +7,7 @@
                         <el-input v-model="form.title" placeholder="请简要描述您遇到的问题"></el-input>
                     </el-form-item>
                     <el-form-item prop="body" label="正文">
-                        <el-input type="textarea" :rows="5" placeholder="请详细描述您遇到的问题，如：页面内容有误/违反规定，页面卡顿等。我们会在第一时间为您解决。" v-model="form.body" @keyup.enter.native="submit()"></el-input>
+                        <el-input type="textarea" :rows="5" placeholder="请详细描述您遇到的问题，我们会在第一时间为您解决。" v-model="form.body"></el-input>
                     </el-form-item>
                 </el-form>
             </div>
