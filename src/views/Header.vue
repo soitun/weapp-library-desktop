@@ -21,28 +21,29 @@
                 </div>
             </el-menu>
         </div>
-        <el-dialog title="修改密码" :visible.sync="passwordModalVisible">
+        <el-dialog title="修改密码" :visible.sync="dialogVisible" @close="resetForm">
             <el-form :rules="passwordRules" label-width="120px" label-position="left" :model="passwordForm" ref="passwordForm">
                 <el-form-item label="原密码" prop="password">
-                    <el-input type="password" v-model="passwordForm.password"></el-input>
+                    <el-input type="password" v-model="passwordForm.password" placeholder="请输入原密码"></el-input>
                 </el-form-item>
-                <el-form-item label="新密码" prop="new_password">
-                    <el-input type="password" v-model="passwordForm.new_password" auto-complete="off" placeholder="长度6~25位"></el-input>
+                <el-form-item label="新密码" prop="newPassword">
+                    <el-input type="password" v-model="passwordForm.newPassword" auto-complete="off" placeholder="长度6~25位"></el-input>
                 </el-form-item>
-                <el-form-item label="确认新密码" prop="confirm_password">
-                    <el-input type="password" v-model="passwordForm.confirm_password" auto-complete="off"></el-input>
+                <el-form-item label="确认新密码" prop="confirmPassword">
+                    <el-input type="password" v-model="passwordForm.confirmPassword" auto-complete="off" placeholder="请确认新密码"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button style="float: left;" @click="resetForm()">重 置</el-button>
-                <el-button @click="passwordModalVisible = false">取 消</el-button>
-                <el-button type="primary" :loading="passwordLoading" @click="submitForm('passwordForm')">确 定</el-button>
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" :loading="loading" @click="submitForm('passwordForm')">确 定</el-button>
             </div>
         </el-dialog>
     </div>
 </template>
 <script>
-import screenfull from '../../components/Screenfull.vue';
+import screenfull from '../components/Screenfull.vue';
+import { changePassword } from '../api/index.js';
 export default {
     components: {
         screenfull
@@ -51,8 +52,8 @@ export default {
         return {
             passwordForm: {
                 password: '',
-                new_password: "",
-                confirm_password: ""
+                newPassword: "",
+                confirmPassword: ""
             },
             passwordRules: {
                 password: {
@@ -60,7 +61,7 @@ export default {
                     message: '请输入原密码',
                     trigger: 'blur'
                 },
-                new_password: [{
+                newPassword: [{
                     required: true,
                     message: '请输入新密码，长度6~25位',
                     min: 6,
@@ -71,19 +72,19 @@ export default {
                         if (value.length < 6)
                             callback(new Error("密码长度不得小于6位"));
 
-                        if (this.passwordForm.confirm_password !== '') {
-                            this.$refs.passwordForm.validateField('confirm_password');
+                        if (this.passwordForm.confirmPassword !== '') {
+                            this.$refs.passwordForm.validateField('confirmPassword');
                         }
                         callback();
                     }
                 }],
-                confirm_password: [{
+                confirmPassword: [{
                     required: true,
                     message: '请再次输入新密码',
                     trigger: 'blur'
                 }, {
                     validator: (rule, value, callback) => {
-                        if (value !== this.passwordForm.new_password) {
+                        if (value !== this.passwordForm.newPassword) {
                             callback(new Error('两次输入密码不一致'));
                         } else {
                             callback();
@@ -92,8 +93,8 @@ export default {
                 }]
             },
 
-            passwordModalVisible: false,
-            passwordLoading: false
+            dialogVisible: false,
+            loading: false
         }
     },
     computed: {
@@ -111,11 +112,12 @@ export default {
         },
         handleCommand(command) {
             if (command == 'loginout') {
-                this.deleteCookie('id');
-                this.$router.push('/login');
+                this.$store.dispatch('LOG_OUT').then(() => {
+                    this.$router.push('/login');
+                })
             }
             if (command == 'changepassword') {
-                this.passwordModalVisible = true;
+                this.dialogVisible = true;
             }
         },
         submitForm(formName) {
@@ -123,7 +125,12 @@ export default {
             self.$refs[formName].validate((valid) => {
                 if (valid) {
                     if (formName == 'passwordForm') {
-                        self.changePassword();
+                        self.loading = true;
+                        self.passwordForm.adminPhone = this.$store.getters.adminPhone;
+                        changePassword(self.passwordForm).then(res => {
+                            self.$message.success("修改密码成功");
+                            self.dialogVisible = false;
+                        }).finally(_ => self.loading = false)
                     }
                 } else {
                     console.log('error submit!!');
@@ -131,21 +138,6 @@ export default {
                 }
             });
         },
-        changePassword() {
-            const self = this;
-            self.passwordLoading = true;
-            self.passwordForm.admin_phone = this.$store.state.userInfo.admin_phone;
-            self.$axios.post("/api/libraries/password", self.passwordForm).then(res => {
-                if (res.data.code == '200') {
-                    self.$message.success("修改密码成功");
-                    self.passwordModalVisible = false;
-                } else {
-                    self.$message.error("原密码错误");
-                }
-            }).catch(error => {
-                self.$message.error("服务器错误");
-            }).finally(_ => self.passwordLoading = false)
-        }
     }
 }
 </script>

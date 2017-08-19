@@ -11,7 +11,7 @@
     </div>
 </template>
 <script>
-import vHead from './components/Header.vue';
+import vHead from './Header.vue';
 import feedback from '../components/Feedback.vue';
 export default {
     components: {

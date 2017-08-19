@@ -60,6 +60,7 @@
 import 'particles.js/particles';
 const particlesJS = window.particlesJS;
 import { requiredValidator, phoneValidator } from '../utils/validate.js'
+import { register } from '../api/index.js';
 
 export default {
     data: function() {
@@ -89,7 +90,7 @@ export default {
             },
             registerRules: {
                 admin_name: [requiredValidator('请输入负责人姓名')],
-                admin_phone: [requiredValidator('请输入负责人手机号'), {validator: phoneValidator}],
+                admin_phone: [requiredValidator('请输入负责人手机号'), { validator: phoneValidator }],
                 name: [requiredValidator('请输入图书馆名称')],
                 location: [requiredValidator('请输入图书馆地址')],
                 phone: [requiredValidator('请输入图书馆电话')],
@@ -231,13 +232,24 @@ export default {
             this.$refs[form].resetFields()
         },
         submitForm(formName) {
-            const self = this;
-            self.$refs[formName].validate((valid) => {
+            this.$refs[formName].validate((valid) => {
                 if (valid) {
                     if (formName == 'loginForm') {
-                        this.login();
+                        this.loginLoading = true;
+                        this.$store.dispatch('LOGIN', this.loginForm).then(() => {
+                            this.$message.success("登录成功");
+                            this.$router.push({ path: '/home' });
+                        }).finally(() => {
+                            this.loginLoading = false;
+                        })
                     } else if (formName == 'registerForm') {
-                        this.register();
+                        this.registerLoading = true;
+                        register(this.registerForm).then(() => {
+                            this.registerDialogVisible = false;
+                            this.$message("注册成功");
+                        }).finally(() => {
+                            this.registerLoading = false;
+                        })
                     }
                 } else {
                     console.log('error submit!!');
@@ -245,43 +257,6 @@ export default {
                 }
             });
         },
-        login() {
-            const self = this;
-            self.loginLoading = true;
-            self.$axios.get("/api/libraries/login", {
-                params: self.loginForm
-            }).then((res) => {
-                self.loginLoading = false;
-                if (res.data.code != 200) {
-                    self.$message.error(res.data.errmsg);
-                } else {
-                    //登录状态15天后过期
-                    let expireDays = 1000 * 60 * 60 * 24 * 15;
-                    this.setCookie('id', res.data.data.id, expireDays);
-                    self.$store.commit('SET_USER_INFO', res.data.data);
-                    self.$router.push('/home');
-                }
-            }).catch(_ => {
-                self.loginLoading = false;
-                self.$message.error("服务器错误")
-            })
-        },
-        register() {
-            const self = this;
-            self.registerLoading = true;
-            self.$axios.post("/api/libraries", self.registerForm).then(res => {
-                self.registerLoading = false;
-                if (res.data.data) {
-                    self.registerDialogVisible = false;
-                    self.$message("注册成功");
-                } else {
-                    self.$message.error("注册失败：" + res.data.errmsg);
-                }
-            }).catch(_ => {
-                self.loginLoading = false;
-                self.$message.error("服务器错误")
-            })
-        }
     }
 }
 </script>

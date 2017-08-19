@@ -65,7 +65,7 @@
             </el-table-column>
             <el-table-column label="订单状态" width="120">
                 <template scope="scope">
-                    <el-tag :type="scope.row.stateColor">{{scope.row.stateTitle}}</el-tag>
+                    <el-tag :type="scope.row | type ">{{scope.row | title}}</el-tag>
                 </template>
             </el-table-column>
             <el-table-column label="操作" width="120">
@@ -95,8 +95,8 @@
                     <el-input disabled :value="dialogData.book_brief.isbn"></el-input>
                 </el-form-item>
                 <el-form-item label="订单状态">
-                    <el-select v-model="dialogStateValue" :placeholder="dialogData.stateTitle">
-                        <el-option v-for="item in stateOptions" :key="item.value" :label="item.label" :value="item.value">
+                    <el-select v-model="dialogStateValue" :placeholder="dialogData | title">
+                        <el-option v-for="item in stateOptions" :label="item.label" :value="item.value">
                         </el-option>
                     </el-select>
                 </el-form-item>
@@ -117,6 +117,7 @@
     </div>
 </template>
 <script>
+import { getOrdersByLibraryId, updateOrderStateById, deleteOrderById } from '../api/index.js';
 export default {
     data: () => {
         return {
@@ -193,61 +194,115 @@ export default {
                     }
                 }]
             }
-
+        }
+    },
+    filters: {
+        type(row) {
+            if (row.state > 1010) {
+                return 'gray';
+                res.data.data.subjects[index]['stateTitle'] = '已归还';
+            }
+            if (row.state == 1001) {
+                return 'warning';
+                res.data.data.subjects[index]['stateTitle'] = '预约中';
+            }
+            if (row.state == 1002 || row.state == 1003) {
+                return 'primary';
+                res.data.data.subjects[index]['stateTitle'] = '可取书';
+            }
+            if (row.state == 1004) {
+                return 'success';
+                res.data.data.subjects[index]['stateTitle'] = '借阅中';
+            }
+            if (row.state == 1005) {
+                return 'danger';
+                res.data.data.subjects[index]['stateTitle'] = '已超期';
+            }
+        },
+        title(row) {
+            if (row.state > 1010) {
+                return '已归还';
+            }
+            if (row.state == 1001) {
+                return '预约中';
+            }
+            if (row.state == 1002 || row.state == 1003) {
+                return '可取书';
+            }
+            if (row.state == 1004) {
+                return '借阅中';
+            }
+            if (row.state == 1005) {
+                return '已超期';
+            }
         }
     },
     computed: {
         libraryId() {
-            return this.$store.state.userInfo.id;
+            return this.$store.getters.id;
         }
     },
     created: function() {
         this.fetchData(1);
     },
     methods: {
-        handleEdit(row) {
-            this.dialogData = row;
-            this.dialogFormVisible = true;
-        },
-        handleSubmit() {
-            if (!this.dialogStateValue)
-                return this.dialogFormVisible = false;
-
-            const self = this;
-            self.$axios.post('/api/orders/' + self.dialogData.id, {
-                state: self.dialogStateValue
-            }).then(res => {
-                self.dialogSubmitBtnLoading = false;
-                if (res.data.code == 200) {
-                    self.dialogFormVisible = false;
-                    self.$message.success("修改成功");
-                    self.fetchData(self.currentPage);
-                } else {
-                    self.$message.error("修改失败");
+        fetchData(p) {
+            this.orderTableLoading = true;
+            var start = (p - 1) * this.pageSize;
+            var params = {
+                start: start
+            };
+            if (this.currentTableType == 'search') {
+                params = {
+                    start: (p - 1) * this.pageSize,
+                    order_id: this.searchOptions.orderId,
+                    phone: this.searchOptions.phone,
+                    start_date: this.searchOptions.startDate,
+                    end_date: this.searchOptions.endDate,
+                    states: this.searchOptions.states.concat()
                 }
+                if (params.states.includes(1002)) // 可取书订单包括：预约取书、预订取书
+                    params.states.push(1003);
+                if (params.states.includes(1011)) // 已归还订单包括所有结束订单
+                    params.states.push(1012, 1013, 1014, 1015);
+            }
+            getOrdersByLibraryId(this.libraryId, params).then(res => {
+                this.orderData = res.subjects;
+                if (start == 0)
+                    this.total = res.total;
+            }).finally(() => {
+                this.orderTableLoading = false;
             })
-
+        },
+        // 修改订单状态
+        handleSubmit() {
+            // 订单状态没变化时直接退出
+            if (!this.dialogStateValue) {
+                return this.dialogFormVisible = false;
+            }
+            this.dialogSubmitBtnLoading = true;
+            updateOrderStateById(this.dialogData.id, this.dialogStateValue).then(() => {
+                this.dialogFormVisible = false;
+                this.$message.success("修改成功");
+                this.fetchData(this.currentPage); // 刷新页面
+            }).finally(() => {
+                this.dialogSubmitBtnLoading = false;
+            })
         },
         handleDelete() {
             this.popoverVisible = false;
             this.dialogDeleteBtnLoading = true;
-
-            const self = this;
-            self.$axios.delete("/api/orders/" + self.dialogData.id).then(res => {
-                self.dialogDeleteBtnLoading = false;
-                if (res.data.code == 200) {
-                    self.dialogFormVisible = false;
-                    self.$message.success("删除订单成功");
-
-                    // 从数组中删除订单
-                    self.orderData.splice(self.orderData.findIndex(i => i.id == self.dialogData.id), 1);
-                } else {
-                    self.$message.error("删除订单失败：" + res.data.errmsg);
-                }
-            }).catch(_ => {
-                self.dialogDeleteBtnLoading = false;
-                self.$message.error("删除订单失败");
+            deleteOrderById(this.dialogData.id).then(() => {
+                this.dialogFormVisible = false;
+                this.$message.success("删除订单成功");
+                this.orderData.splice(this.orderData.findIndex(i => i.id == this.dialogData.id), 1); // 从数组中删除订单
+            }).finally(_ => {
+                this.dialogDeleteBtnLoading = false;
             });
+        },
+        handleEdit(row) {
+            this.dialogData = row;
+            this.dialogFormVisible = true;
         },
         handleSearch() {
             this.currentTableType = 'search';
@@ -270,69 +325,6 @@ export default {
         resetFields() {
             this.dialogStateValue = "";
         },
-        fetchData(p) {
-            var start = (p - 1) * this.pageSize;
-            var self = this;
-            var url = '/api/orders/libraries/' + this.libraryId + '?start=' + start;
-            var params = {};
-            if (this.currentTableType == 'search') {
-                url = '/api/orders/libraries/' + this.libraryId + '?start=' + start;
-
-                if (this.searchOptions.orderId) params.order_id = this.searchOptions.orderId;
-                if (this.searchOptions.phone) params.phone = this.searchOptions.phone;
-                if (this.searchOptions.startDate) params.start_date = this.searchOptions.startDate
-                if (this.searchOptions.endDate) params.end_date = this.searchOptions.endDate;
-                if (this.searchOptions.states) {
-                    params.states = [];
-                    if (this.searchOptions.states.includes(1001))
-                        params.states.push(1001);
-                    if (this.searchOptions.states.includes(1002))
-                        params.states.push(1002, 1003);
-                    if (this.searchOptions.states.includes(1004))
-                        params.states.push(1004);
-                    if (this.searchOptions.states.includes(1005))
-                        params.states.push(1005);
-                    if (this.searchOptions.states.includes(1011))
-                        params.states.push(1011, 1012, 1013, 1014, 1015);
-                }
-            }
-            self.orderTableLoading = true;
-            self.$axios.get(url, {
-                params: params
-            }).then(res => {
-                self.orderTableLoading = false;
-                if (res.data.code == 200) {
-                    //根据订单状态，设置tag颜色与内容
-                    res.data.data.subjects.forEach((i, index) => {
-                        if (i.state > 1010) {
-                            res.data.data.subjects[index]['stateColor'] = 'gray';
-                            res.data.data.subjects[index]['stateTitle'] = '已归还';
-                        }
-                        if (i.state == 1001) {
-                            res.data.data.subjects[index]['stateColor'] = 'warning';
-                            res.data.data.subjects[index]['stateTitle'] = '预约中';
-                        }
-                        if (i.state == 1002 || i.state == 1003) {
-                            res.data.data.subjects[index]['stateColor'] = 'primary';
-                            res.data.data.subjects[index]['stateTitle'] = '可取书';
-                        }
-                        if (i.state == 1004) {
-                            res.data.data.subjects[index]['stateColor'] = 'success';
-                            res.data.data.subjects[index]['stateTitle'] = '借阅中';
-                        }
-                        if (i.state == 1005) {
-                            res.data.data.subjects[index]['stateColor'] = 'danger';
-                            res.data.data.subjects[index]['stateTitle'] = '已超期';
-                        }
-                    })
-                    self.orderData = res.data.data.subjects;
-                    if (start == 0)
-                        self.total = res.data.data.total;
-                } else {
-                    self.$message.error("获取订单列表失败：" + res.data.errmsg);
-                }
-            })
-        }
     }
 }
 </script>

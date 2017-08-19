@@ -10,27 +10,7 @@
             <div class="panel">
                 <div class="content-title">图书馆信息</div>
                 <div class="card">
-                    <el-form v-if="editing" :model="libraryFormData" :rules="libraryRules" ref="libraryForm" style="padding: 12px 20px" label-width="110px" label-position="left">
-                        <el-form-item label="图书馆名称：" prop="name">
-                            <el-input v-model="libraryFormData.name" size="small"></el-input>
-                        </el-form-item>
-                        <el-form-item label="图书馆地址：" prop="location">
-                            <el-input v-model="libraryFormData.location" size="small"></el-input>
-                        </el-form-item>
-                        <el-form-item label="图书馆电话：" prop="phone">
-                            <el-input v-model="libraryFormData.phone" size="small"></el-input>
-                        </el-form-item>
-                        <el-form-item label="图书馆描述：" prop="description">
-                            <el-input v-model="libraryFormData.description" size="small"></el-input>
-                        </el-form-item>
-                        <el-form-item label="负责人：" prop="admin_name">
-                            <el-input v-model="libraryFormData.admin_name" size="small"></el-input>
-                        </el-form-item>
-                        <el-form-item label="联系电话">
-                            <el-input disabled v-model="libraryFormData.admin_phone" size="small"></el-input>
-                        </el-form-item>
-                    </el-form>
-                    <div v-else class="fragment">
+                    <div class="fragment">
                         <div>
                             <div>图书馆名称：</div>{{libraryData.name}}</div>
                         <div>
@@ -40,9 +20,9 @@
                         <div>
                             <div>图书馆描述：</div>{{libraryData.description}}</div>
                         <div>
-                            <div>负责人：</div>{{libraryData.admin_name}}</div>
+                            <div>管理员姓名：</div>{{libraryData.admin_name}}</div>
                         <div>
-                            <div>联系电话：</div>{{libraryData.admin_phone}}</div>
+                            <div>管理员手机号：</div>{{libraryData.admin_phone}}</div>
                     </div>
                     <div class="fragment">
                         <div>
@@ -51,20 +31,45 @@
                             <div>图书馆馆藏：</div>{{libraryData.book_total_number}}</div>
                         <div>历史借阅总次数：{{libraryData.order_total_number}}</div>
                     </div>
-                    <div v-if="editing" class="fragment">
-                        <el-button type="primary" @click="submitForm('libraryForm')">提 交</el-button>
-                        <el-button type="default" @click="handleCancel">取 消</el-button>
-                    </div>
-                    <div v-else class="fragment">
-                        <el-button type="default" @click="editing=true">修改图书馆资料</el-button>
+                    <div class="fragment">
+                        <el-button type="default" @click="dialogVisible=true">修改图书馆资料</el-button>
                     </div>
                 </div>
             </div>
         </el-col>
+        <el-dialog title="修改图书馆资料" :visible.sync="dialogVisible" @close="reset">
+            <el-form :model="formData" :rules="rules" ref="form" label-width="120px" label-position="left">
+                <el-form-item :disabled="$store.getters.state==1" label="图书馆名称：" prop="name">
+                    <el-input v-model="formData.name"></el-input>
+                </el-form-item>
+                <el-form-item label="图书馆地址：" prop="location">
+                    <el-input v-model="formData.location"></el-input>
+                </el-form-item>
+                <el-form-item label="图书馆电话：" prop="phone">
+                    <el-input v-model="formData.phone"></el-input>
+                </el-form-item>
+                <el-form-item label="图书馆描述：" prop="description">
+                    <el-input type="textarea" :rows="5" v-model="formData.description"></el-input>
+                </el-form-item>
+                <el-form-item label="管理员姓名：" prop="admin_name">
+                    <el-input v-model="formData.admin_name"></el-input>
+                </el-form-item>
+                <el-form-item label="管理员手机号：">
+                    <el-input disabled v-model="formData.admin_phone"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <div class="fragment">
+                    <el-button type="primary" @click="submitForm()" :loading="loading">提 交</el-button>
+                    <el-button type="default" @click="dialogVisible =false">取 消</el-button>
+                </div>
+            </div>
+        </el-dialog>
     </el-row>
 </template>
 <script>
 import { requiredValidator, integerValidator, phoneValidator } from '../utils/validate.js'
+import { updateUserInfoById } from '../api/index.js';
 
 // 图表横坐标：最近7天的日期
 var date = [];
@@ -77,15 +82,15 @@ for (let i = 0; i < 7; i++) {
 export default {
     data: () => {
         return {
+            dialogVisible: false,
+            loading: false,
+            formData: {}, // 图书馆信息表单数据
 
-            editing: false, // 是否编辑图书馆信息
-            libraryFormData: {}, // 图书馆信息表单数据
-
-            libraryRules: {
+            rules: {
                 admin_name: [requiredValidator('请输入负责人姓名')],
                 name: [requiredValidator('请输入图书馆名称')],
                 location: [requiredValidator('请输入图书馆地址')],
-                phone: [requiredValidator('请输入图书馆电话'), { validator: phoneValidator }],
+                phone: [requiredValidator('请输入图书馆电话')],
                 description: [requiredValidator('请输入图书馆描述')]
             },
 
@@ -151,7 +156,7 @@ export default {
         },
     },
     mounted() {
-        this.libraryFormData = Object.assign({}, this.libraryData);
+        this.formData = Object.assign({}, this.libraryData);
         this.$refs.chart.mergeOptions({
             series: [{
                 name: "借书量",
@@ -162,41 +167,25 @@ export default {
         });
     },
     methods: {
-        handleCancel() {
-            this.editing = false;
-            this.libraryFormData = Object.assign({}, this.libraryData);
+        reset() {
+            this.$refs.form.resetFields();
         },
-        submitForm(formName) {
+        submitForm() {
             const self = this;
-            self.$refs[formName].validate((valid) => {
+            self.$refs.form.validate((valid) => {
                 if (valid) {
-                    if (formName == 'libraryForm') {
-                        self.submitLibraryForm();
-                    }
+                    self.loading = true;
+                    self.$store.dispatch('UPDATE_USER_INFO', self.formData).then(() => {
+                        self.loading = false;
+                        self.dialogVisible = false;
+                        self.$message("修改成功");
+                    });
                 } else {
                     console.log('error submit!!');
                     return false;
                 }
             });
         },
-        submitLibraryForm() {
-            const self = this;
-            self.libraryLoading = true;
-            self.$axios.post('/api/libraries/' + self.libraryId, self.libraryFormData).then(res => {
-                self.libraryLoading = false;
-                if (res.data.code == 200) {
-                    self.dialogFormVisible = false;
-                    self.$message("修改成功");
-                    self.editing = false;
-                    self.$store.commit('SET_USER_INFO', self.libraryFormData);
-                } else {
-                    self.$message.error("修改失败");
-                }
-            }).catch(_ => {
-                self.libraryLoading = false;
-                self.$message.error("服务器错误")
-            })
-        }
     }
 }
 </script>
@@ -219,6 +208,7 @@ export default {
 .card .el-form-item {
     margin-bottom: 0;
 }
+
 .card .el-form-item.is-error {
     margin-bottom: 20px;
 }

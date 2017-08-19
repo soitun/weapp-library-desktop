@@ -29,7 +29,7 @@
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="dialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" :loading="collectionFormLoading" @click="submitForm('collcetionForm')">确 定</el-button>
+                <el-button type="primary" :loading="collectionFormLoading" @click="submitForm">确 定</el-button>
             </div>
         </el-dialog>
         <el-table class="collection-table" v-loading="collectionTableLoading" :data="collectionData" stripe style="width: 100%" @row-click="navigate">
@@ -54,6 +54,7 @@
 </template>
 <script>
 import { requiredValidator, integerValidator } from '../utils/validate.js'
+import { getCollections, updateCollection } from '../api/index.js';
 
 export default {
     data: () => {
@@ -91,7 +92,7 @@ export default {
     },
     computed: {
         libraryId() {
-            return this.$store.state.userInfo.id;
+            return this.$store.getters.id;
         }
     },
     mounted: function() {
@@ -110,7 +111,6 @@ export default {
                 available_num: null
             }
         },
-
         // 编辑某一行馆藏信息
         handleEdit(row) {
             this.collcetionForm.isbn = row.book_brief.isbn;
@@ -118,18 +118,16 @@ export default {
             this.collcetionForm.available_num = row.available_num;
             this.dialogFormVisible = true
         },
-
         // 清空搜索条件，重置表格
         resetTable() {
             this.searchInput = '';
             this.currentTableType = 'all';
 
-            //currentPage为1时，设置total不会改变currentPage
+            // currentPage为1时，设置total不会改变currentPage
             if (this.currentPage == 1)
                 this.fetchData(1);
             else this.currentPage = 1;
         },
-
         // 搜索馆藏
         handleSearch() {
             this.currentTableType = 'search';
@@ -137,77 +135,63 @@ export default {
                 this.fetchData(1);
             else this.currentPage = 1;
         },
-
         // 获取数据
         fetchData(p) {
+            this.collectionTableLoading = true;
             var start = (p - 1) * this.pageSize;
-            var self = this;
-            var url = '/api/libraries/' + this.libraryId + '/collections?start=' + start;
-            if (this.currentTableType == 'search') {
-                url = '/api/libraries/' + this.libraryId + '/collections?isbn=' + self.searchInput;
-            }
-            self.collectionTableLoading = true;
-            self.$axios.get(url).then(res => {
-                self.collectionTableLoading = false;
-                if (res.data.code == 200) {
-                    self.collectionData = res.data.data.subjects;
-
+            getCollections(this.libraryId, {
+                start: start,
+                isbn: this.currentTableType == 'search' ? this.searchInput : undefined
+            }).then(res => {
+                this.collectionData = res.subjects;
+                if (start == 0) {
                     // total改变时，currentPage也会改变，会触发current-change事件
-                    if (start == 0)
-                        self.total = res.data.data.total;
-                } else {
-                    self.$message.error("获取馆藏信息失败：" + res.data.errmsg);
+                    // 只在第一页刷新total
+                    this.total = res.total;
                 }
-            }).catch(_ => {
-                self.collectionTableLoading = false;
-                self.$message.error("服务器错误")
+            }).finally(_ => {
+                this.collectionTableLoading = false;
             })
         },
-
-        submitForm(formName) {
-            const self = this;
-            self.$refs[formName].validate((valid) => {
+        // 添加馆藏
+        submitForm() {
+            this.$refs.collcetionForm.validate((valid) => {
                 if (valid) {
-                    if (formName == 'collcetionForm') {
-                        self.submitCollectionForm();
-                    }
+                    this.collectionFormLoading = true;
+                    updateCollection(this.libraryId, this.collcetionForm).then((res) => {
+                        // 提示
+                        this.$message({
+                            type: 'success',
+                            message: "设置馆藏成功：《" + res.book_brief.title + "》 总数：" + res.total_num + " 可借：" + res.available_num,
+                            duration: 10000,
+                            showClose: true
+                        });
+                        // 刷新数据
+                        this.fetchData(this.currentPage);
+                        this.dialogFormVisible = false;
+                    }).catch((res) => {
+                        if(res.code && res.code == '400') {
+                            const h = this.$createElement;
+                            this.$msgbox({
+                                title: '消息',
+                                type: 'error',
+                                message: h('p', null, [
+                                    "ISBN不存在，您可前往",
+                                    h('a', { attrs: { href: 'https://api.mymoonlight.cn/wiki/', target: "blank" } }, 'Wiki系统'),
+                                    "创建图书条目"
+                                ]),
+                                confirmButtonText: '确定'
+                            });
+                        }
+                    }).finally(() => {
+                        this.collectionFormLoading = false;
+                    })
                 } else {
                     console.log('error submit!!');
                     return false;
                 }
             });
         },
-
-        // 添加馆藏
-        submitCollectionForm() {
-            const self = this;
-            self.collectionFormLoading = true;
-            self.$axios.post('/api/libraries/' + this.libraryId + '/collections', self.collcetionForm).then(res => {
-                self.collectionFormLoading = false;
-                if (res.data.code == 200) {
-                    this.$message.success("设置馆藏成功：《" + res.data.data.book_brief.title + "》 总数：" + res.data.data.total_num + " 可借：" + res.data.data.available_num)
-                    self.fetchData(self.currentPage);
-                    self.dialogFormVisible = false;
-                    self.resetFields();
-                } else {
-                    const h = this.$createElement;
-                    this.$msgbox({
-                        title: '消息',
-                        type: 'error',
-                        message: h('p', null, [
-                            "ISBN不存在，您可前往",
-                            h('a', { attrs: { href: 'https://api.mymoonlight.cn/wiki/', target: "blank" } }, 'Wiki系统'),
-                            "创建图书条目"
-                        ]),
-                        confirmButtonText: '确定'
-                    });
-                }
-            }).catch(_ => {
-                self.collectionFormLoading = false;
-                self.$message.error("服务器错误")
-            })
-        },
-
         // 显示提示信息
         showTip() {
             const h = this.$createElement;
@@ -225,7 +209,6 @@ export default {
                 //duration: 0
             });
         },
-
         // 跳转到图书详情页
         navigate: function(row) {
             window.open("https://api.mymoonlight.cn/wiki/#/book/" + row.book_brief.id);
