@@ -1,30 +1,26 @@
 import Vue from 'vue';
 import ElementUI from 'element-ui';
 import { Message } from 'element-ui';
-import VueAreaLinkage from 'vue-area-linkage';
 import 'element-ui/lib/theme-default/index.css';
 import App from './App.vue'
 import axios from 'axios';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css'; // Progress 进度条 样式
 import router from './router';
-import Echarts from 'vue-echarts';
 import store from './store';
 import { getId } from './utils/auth.js';
 require('promise.prototype.finally').shim();
 
 Vue.use(ElementUI);
-Vue.use(VueAreaLinkage);
-Vue.component('chart', Echarts);
 
 
-// 每隔一定时间更新用户信息
+// 每隔一定时间更新用户信息，在后台运行，不提示错误消息
 if (store.getters.id) {
-    store.dispatch("GET_INFO")
+    store.dispatch("GET_INFO", false)
 }
 setInterval(() => {
     if (store.getters.id) {
-        store.dispatch("GET_INFO")
+        store.dispatch("GET_INFO", false)
     }
 }, 5000);
 

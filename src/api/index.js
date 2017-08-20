@@ -1,4 +1,5 @@
 import fetch from './fetch.js';
+import axios from 'axios';
 
 export function login(phone, password) {
     return fetch.get("/api/libraries/login", {
@@ -13,6 +14,14 @@ export function register(params) {
 // 获取用户信息
 export function getUserInfoById(id) {
     return fetch.get('/api/libraries/' + id);
+}
+
+export function getUserInfoByIdWithoutNotify(id) {
+    return axios.get('/api/libraries/' + id).then((res) => {
+        if(res.data.code == 200) {
+            return res.data.data;
+        }
+    });
 }
 
 export function updateUserInfoById(id, params) {
