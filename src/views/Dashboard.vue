@@ -42,7 +42,8 @@
                         {{libraryData.phone}}
                     </el-form-item>
                     <el-form-item label="图书馆描述：">
-                        {{libraryData.description}}
+                        <div class="library-description" :class="{'word-wrap': !needTrim || showAllDescription}">{{description}}<span v-if="needTrim && !showAllDescription" @click="showAllDescription = true;">查看全部</span>
+                        <span v-if="needTrim && showAllDescription" @click="showAllDescription = false;">收起</span></div>
                     </el-form-item>
                     <el-form-item label="管理员姓名：">
                         {{libraryData.admin_name}}
@@ -76,7 +77,7 @@
                 </el-form>
                 <div v-if="libraryData.image_urls && libraryData.image_urls.length" class="fragment">
                     <div class="fragment-title">图书馆照片</div>
-                    <el-carousel :autoplay="false" type="card" height="200px">
+                    <el-carousel type="card" height="200px">
                         <el-carousel-item v-for="item in libraryData.image_urls" :key="item">
                             <img :src="item" style="max-height: 200px" @click="handlePictureCardPreview({url: item})">
                         </el-carousel-item>
@@ -135,7 +136,12 @@
 import { requiredValidator, integerValidator, phoneValidator } from '../utils/validate.js'
 import httpRequest from '../utils/httpRequest';
 import { updateUserInfoById } from '../api/index.js';
-import echarts from 'echarts';
+
+var echarts = require('echarts/lib/echarts');
+require('echarts/lib/chart/line');
+require('echarts/lib/chart/pie');
+require('echarts/lib/component/tooltip');
+require('echarts/lib/component/title');
 import chartTheme from '../assets/theme.js';
 
 // 图表横坐标：最近7天的日期
@@ -149,6 +155,7 @@ for (let i = 0; i < 7; i++) {
 export default {
     data: () => {
         return {
+            showAllDescription: false, // 是否显示所有的描述
             loading: false, // 上传按钮是否Loading
             dialogVisible: false,
             dialogImageUrl: '',
@@ -175,6 +182,19 @@ export default {
         },
         libraryData() {
             return this.$store.state.userInfo;
+        },
+        // 图书描述是否过长
+        needTrim() {
+            return this.libraryData.description.length > 100;
+        },
+        description() {
+            if (this.showAllDescription) {
+                return this.libraryData.description;
+            }
+            if (this.libraryData.description.length > 100) {
+                return this.libraryData.description.slice(0, 97) + '...';
+            }
+            return this.libraryData.description;
         },
     },
     mounted() {
@@ -403,6 +423,19 @@ export default {
 
 .fragment .el-form-item {
     margin: 0;
+}
+
+.library-description {
+    line-height: 30px;
+}
+
+.library-description span {
+    color: #20a0ff;
+    margin-left: 5px;
+}
+
+.word-wrap {
+    white-space: pre-wrap;
 }
 </style>
 <style>
