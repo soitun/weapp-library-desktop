@@ -21,3 +21,7 @@ export const phoneValidator = (rule, value, callback) => {
         callback();
     }
 }
+
+export const phoneTest = (value) => {
+    return /^1[34578]\d{9}$/.test(value);
+}
