@@ -4,6 +4,7 @@
             <el-menu class="header" theme="dark" :default-active="onRoutes" mode="horizontal" router>
                 <div class="logo">图书馆后台管理系统</div>
                 <el-menu-item index="home">个人中心</el-menu-item>
+                <el-menu-item index="chart">数据统计</el-menu-item>
                 <el-menu-item index="collection">馆藏管理</el-menu-item>
                 <el-menu-item index="order">订单管理</el-menu-item>
                 <div class="header-action">

@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import Login from '../views/Login.vue';
 import Home from '../views/Home.vue';
 import Dashboard from '../views/Dashboard.vue';
+import Chart from '../views/Chart.vue';
 import Order from '../views/Order.vue';
 import Collection from '../views/Collection.vue';
 
@@ -21,6 +22,9 @@ export default new Router({
         children: [{
             path: '',
             component: Dashboard
+        }, {
+            path: '/chart',
+            component: Chart
         }, {
             path: '/order',
             component: Order
